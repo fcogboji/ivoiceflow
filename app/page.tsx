@@ -3,8 +3,8 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="p-4 flex justify-between items-center border-b border-slate-200 bg-white/80 backdrop-blur">
+    <div className="min-h-screen flex flex-col bg-white">
+      <header className="p-4 flex justify-between items-center border-b border-slate-200 bg-white backdrop-blur">
         <span className="font-semibold text-lg text-slate-800">InvoiceFlow</span>
         <SignedOut>
           <Link

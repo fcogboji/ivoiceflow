@@ -8,6 +8,7 @@ const isPublic = createRouteMatcher([
   "/i/(.*)",               // public invoice view (optional)
   "/api/webhooks/(.*)",    // Paystack, bank-transfer, etc.
   "/manifest.json",        // PWA manifest (must be public to load)
+  "/sw.js",                // PWA service worker
   "/icon-192.png",
   "/icon-512.png",
 ]);
