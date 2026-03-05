@@ -1,0 +1,170 @@
+// InvoiceFlow - Nigeria quotes & invoices. Use DATABASE_URL for Neon/Postgres (or SQLite with file:./dev.db).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Clerk handles auth; we store profile and business info
+model User {
+  id              String    @id @default(cuid())
+  clerkId         String    @unique
+  email           String?
+  businessName    String    @default("My Business")
+  phone           String?
+  logoUrl         String?
+  // Nigeria: CAC & TIN
+  cacNumber       String?
+  tinNumber       String?
+  // Payment provider: paystack | flutterwave
+  paymentProvider String    @default("paystack")
+  paystackSecret  String?
+  flutterwaveSecret String?
+  // WhatsApp message template (supports {{customerName}}, {{amount}}, {{invoiceLink}})
+  whatsappTemplate String?
+  onboardingDone  Boolean   @default(false)
+  referralCode    String    @unique @default(cuid())
+  referredById    String?
+  referredBy      User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]    @relation("Referrals")
+  // Bank transfer payment instructions (manual)
+  bankAccountNumber String?
+  bankName         String?
+  bankAccountName  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  customers         Customer[]
+  products          Product[]
+  quotes            Quote[]
+  invoices          Invoice[]
+  linkedBankAccounts LinkedBankAccount[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotes    Quote[]
+  invoices  Invoice[]
+
+  @@index([userId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       BigInt   // kobo; BigInt supports large amounts (e.g. ₦200M+)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum QuoteStatus {
+  draft
+  sent
+  approved
+  rejected
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status      QuoteStatus @default(draft)
+  total       BigInt      // kobo
+  note        String?
+  validUntil  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  items QuoteItem[]
+}
+
+model QuoteItem {
+  id          String  @id @default(cuid())
+  quoteId     String
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productName String
+  quantity    Int     @default(1)
+  price       BigInt  // kobo per unit
+  @@index([quoteId])
+}
+
+enum InvoiceStatus {
+  pending
+  paid
+  cancelled
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId       String
+  customer         Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status           InvoiceStatus @default(pending)
+  total            BigInt        // kobo; BigInt supports large amounts (e.g. ₦200M+)
+  vatAmount        BigInt        @default(0) // VAT 7.5% in kobo
+  paymentLink      String?
+  paystackRef      String?
+  paidAt           DateTime?
+  // Bank transfer: unique reference customer must put in transfer narration (e.g. INV-A1B2C3)
+  paymentReference String?       @unique
+  // How payment was received: paystack | bank_transfer
+  paidVia          String?
+  note             String?
+  dueDate          DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  items InvoiceItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentReference])
+}
+
+// Connected bank accounts for automatic transfer matching (Mono, Okra, etc.)
+model LinkedBankAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String   // mono | okra | flutterwave
+  accountId     String   // provider's account id
+  accountNumber String
+  bankName      String?
+  accountName   String?
+  isActive      Boolean  @default(true)
+  lastSyncedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, provider, accountId])
+  @@index([userId])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productName String
+  quantity    Int     @default(1)
+  price       BigInt  // kobo per unit
+  @@index([invoiceId])
+}
