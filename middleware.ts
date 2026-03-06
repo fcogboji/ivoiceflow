@@ -7,6 +7,7 @@ const isPublic = createRouteMatcher([
   "/pay/(.*)",             // public payment page
   "/i/(.*)",               // public invoice view (optional)
   "/api/webhooks/(.*)",    // Paystack, bank-transfer, etc.
+  "/cookie-policy",        // cookie policy (linked from consent banner)
   "/manifest.json",        // PWA manifest (must be public to load)
   "/sw.js",                // PWA service worker
   "/icon-192.png",
