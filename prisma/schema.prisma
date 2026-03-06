@@ -16,6 +16,7 @@ model User {
   businessName    String    @default("My Business")
   phone           String?
   logoUrl         String?
+  brandColor      String?   // hex e.g. #2563EB — used on invoices/quotes
   // Nigeria: CAC & TIN
   cacNumber       String?
   tinNumber       String?
@@ -81,17 +82,18 @@ enum QuoteStatus {
 }
 
 model Quote {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customerId  String
-  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  status      QuoteStatus @default(draft)
-  total       BigInt      // kobo
-  note        String?
-  validUntil  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id                   String      @id @default(cuid())
+  userId               String
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId           String
+  customer             Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status               QuoteStatus @default(draft)
+  total                BigInt      // kobo
+  note                 String?
+  validUntil           DateTime?
+  sellerSignatureData  String?    // data URL of authorized e-signature
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
   items QuoteItem[]
 }
@@ -128,10 +130,11 @@ model Invoice {
   paymentReference String?       @unique
   // How payment was received: paystack | bank_transfer
   paidVia          String?
-  note             String?
-  dueDate          DateTime?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  note                  String?
+  dueDate               DateTime?
+  sellerSignatureData   String?    // data URL of authorized e-signature
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 
   items InvoiceItem[]
 

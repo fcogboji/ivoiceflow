@@ -42,6 +42,7 @@ export default async function QuoteDetailPage({
           business={{
             businessName: user.businessName,
             logoUrl: user.logoUrl,
+            brandColor: user.brandColor,
             phone: user.phone,
             email: user.email,
           }}
@@ -58,6 +59,7 @@ export default async function QuoteDetailPage({
           total={quote.total}
           note={quote.note}
           status={quote.status}
+          sellerSignatureData={quote.sellerSignatureData}
         />
       </div>
 

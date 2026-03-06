@@ -25,11 +25,13 @@ export async function POST(req: Request) {
     items,
     note,
     validUntil,
+    sellerSignatureData,
   } = body as {
     customerId: string;
     items: { productName: string; quantity: number; price: number }[];
     note?: string;
     validUntil?: string;
+    sellerSignatureData?: string | null;
   };
 
   if (!customerId || !items?.length) {
@@ -55,6 +57,7 @@ export async function POST(req: Request) {
       total: BigInt(total),
       note: note?.trim() || undefined,
       validUntil: validUntil ? new Date(validUntil) : undefined,
+      sellerSignatureData: sellerSignatureData && typeof sellerSignatureData === "string" ? sellerSignatureData : undefined,
       items: {
         create: items.map((i) => ({
           productName: i.productName || "Item",

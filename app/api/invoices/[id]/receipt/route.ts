@@ -3,8 +3,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatNaira } from "@/lib/utils";
 
-const BRAND_BLUE = "#1e3a5f";
-const BRAND_BLUE_LIGHT = "#3b82b6";
+const DEFAULT_BRAND = "#1e3a5f";
+const DEFAULT_BRAND_LIGHT = "#3b82b6";
+function brandColors(brandColor: string | null | undefined) {
+  const valid = brandColor && /^#[0-9A-Fa-f]{6}$/.test(brandColor);
+  return { primary: valid ? brandColor! : DEFAULT_BRAND, secondary: valid ? brandColor! : DEFAULT_BRAND_LIGHT };
+}
 
 export async function GET(
   _req: Request,
@@ -39,6 +43,8 @@ export async function GET(
         ? "Bank transfer"
         : "Payment";
 
+  const { primary, secondary } = brandColors(user.brandColor);
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,15 +52,15 @@ export async function GET(
   <title>Receipt ${escapeHtml(invNumber)}</title>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px 32px; color: #1e293b; }
-    .top-bar { height: 8px; background: linear-gradient(90deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 50%, ${BRAND_BLUE} 100%); margin: -24px -32px 24px -32px; }
+    .top-bar { height: 8px; background: linear-gradient(90deg, ${primary} 0%, ${secondary} 50%, ${primary} 100%); margin: -24px -32px 24px -32px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
     .header-logo { height: 72px; width: auto; max-width: 200px; object-fit: contain; margin-bottom: 8px; }
-    .business-name { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; color: ${BRAND_BLUE}; }
+    .business-name { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; color: ${primary}; }
     .divider { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .divider-line { height: 1px; width: 100px; background: ${BRAND_BLUE_LIGHT}; }
+    .divider-line { height: 1px; width: 100px; background: ${secondary}; }
     .title-right { text-align: right; }
-    .receipt-title { font-size: 1.75rem; font-weight: 700; text-transform: uppercase; color: ${BRAND_BLUE}; }
-    .receipt-num { font-size: 0.875rem; color: ${BRAND_BLUE_LIGHT}; margin-top: 4px; }
+    .receipt-title { font-size: 1.75rem; font-weight: 700; text-transform: uppercase; color: ${primary}; }
+    .receipt-num { font-size: 0.875rem; color: ${secondary}; margin-top: 4px; }
     .paid-badge { display: inline-block; margin-top: 8px; padding: 6px 14px; border-radius: 9999px; font-size: 0.8125rem; font-weight: 600; background: #d1fae5; color: #065f46; }
     .meta { font-size: 0.875rem; color: #475569; margin-top: 6px; }
     .bill-section { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
@@ -62,7 +68,7 @@ export async function GET(
     .bill-name { font-weight: 600; color: #1e293b; }
     .bill-detail { font-size: 0.875rem; color: #475569; margin-top: 2px; }
     table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-    thead tr { background: ${BRAND_BLUE}; color: white; }
+    thead tr { background: ${primary}; color: white; }
     th { padding: 12px 16px; font-size: 0.8125rem; font-weight: 600; text-align: left; }
     th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
     th:nth-child(5) { text-align: right; }
@@ -76,8 +82,8 @@ export async function GET(
     .summary-row { display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 8px; }
     .summary-row .label { color: #64748b; }
     .summary-row .val { font-weight: 600; }
-    .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 12px; border-top: 2px solid ${BRAND_BLUE_LIGHT}; font-weight: 700; font-size: 1.125rem; }
-    .summary-total .val { color: ${BRAND_BLUE}; }
+    .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 12px; border-top: 2px solid ${secondary}; font-weight: 700; font-size: 1.125rem; }
+    .summary-total .val { color: ${primary}; }
     .thank-you { margin-top: 32px; padding: 20px; text-align: center; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 1rem; font-weight: 600; color: #166534; }
     .footer { margin-top: 32px; font-size: 0.75rem; color: #94a3b8; text-align: center; }
     @media print { body { padding: 16px; } .top-bar { margin: -16px -16px 20px -16px; } }
@@ -91,7 +97,7 @@ export async function GET(
       <h1 class="business-name">${escapeHtml(user.businessName)}</h1>
       <div class="divider">
         <span class="divider-line"></span>
-        <span style="color:${BRAND_BLUE_LIGHT}">●</span>
+        <span style="color:${secondary}">●</span>
         <span class="divider-line"></span>
       </div>
     </div>

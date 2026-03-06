@@ -2,8 +2,16 @@
 
 import { formatNaira } from "@/lib/utils";
 
-const BRAND_BLUE = "#1e3a5f";
-const BRAND_BLUE_LIGHT = "#3b82b6";
+const DEFAULT_BRAND = "#1e3a5f";
+const DEFAULT_BRAND_LIGHT = "#3b82b6";
+
+function useBrandColors(brandColor?: string | null) {
+  const valid = brandColor && /^#[0-9A-Fa-f]{6}$/.test(brandColor);
+  return {
+    primary: valid ? brandColor! : DEFAULT_BRAND,
+    secondary: valid ? brandColor! : DEFAULT_BRAND_LIGHT,
+  };
+}
 
 type Item = {
   productName: string;
@@ -14,6 +22,7 @@ type Item = {
 type Business = {
   businessName: string;
   logoUrl?: string | null;
+  brandColor?: string | null;
   phone?: string | null;
   email?: string | null;
 };
@@ -38,6 +47,7 @@ type Props = {
   paymentLink?: string | null;
   note?: string | null;
   status?: string;
+  sellerSignatureData?: string | null;
 };
 
 export function InvoicePrintLayout({
@@ -54,7 +64,9 @@ export function InvoicePrintLayout({
   paymentLink,
   note,
   status,
+  sellerSignatureData,
 }: Props) {
+  const { primary, secondary } = useBrandColors(business.brandColor);
   const subtotalNum = Number(subtotal);
   const vatNum = Number(vatAmount);
   const totalNum = Number(total);
@@ -68,7 +80,7 @@ export function InvoicePrintLayout({
       <div
         className="h-2 w-full"
         style={{
-          background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 50%, ${BRAND_BLUE} 100%)`,
+          background: `linear-gradient(90deg, ${primary} 0%, ${secondary} 50%, ${primary} 100%)`,
         }}
       />
 
@@ -85,32 +97,32 @@ export function InvoicePrintLayout({
             ) : null}
             <h1
               className="text-xl md:text-2xl font-bold uppercase tracking-tight"
-              style={{ color: BRAND_BLUE }}
+              style={{ color: primary }}
             >
               {business.businessName}
             </h1>
             <div className="flex items-center gap-2 mt-2">
               <div
                 className="h-px flex-1 max-w-[120px]"
-                style={{ backgroundColor: BRAND_BLUE_LIGHT }}
+                style={{ backgroundColor: secondary }}
               />
-              <svg className="w-4 h-4" style={{ color: BRAND_BLUE_LIGHT }} viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-4 h-4" style={{ color: secondary }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
               </svg>
               <div
                 className="h-px flex-1 max-w-[120px]"
-                style={{ backgroundColor: BRAND_BLUE_LIGHT }}
+                style={{ backgroundColor: secondary }}
               />
             </div>
           </div>
           <div className="text-right">
             <p
               className="text-2xl md:text-3xl font-bold uppercase"
-              style={{ color: BRAND_BLUE }}
+              style={{ color: primary }}
             >
               {type === "invoice" ? "Invoice" : "Quote"}
             </p>
-            <p className="text-sm mt-1" style={{ color: BRAND_BLUE_LIGHT }}>
+            <p className="text-sm mt-1" style={{ color: secondary }}>
               #{number}
             </p>
             {dueLabel && <p className="text-slate-700 mt-1 text-sm">{dueLabel}</p>}
@@ -158,7 +170,7 @@ export function InvoicePrintLayout({
             <thead>
               <tr
                 className="text-white text-left"
-                style={{ backgroundColor: BRAND_BLUE }}
+                style={{ backgroundColor: primary }}
               >
                 <th className="p-3 font-semibold">Description</th>
                 <th className="p-3 font-semibold text-center w-20">QTY</th>
@@ -199,10 +211,10 @@ export function InvoicePrintLayout({
             </div>
             <div
               className="flex justify-between pt-2 mt-2 border-t-2 border-slate-200"
-              style={{ borderColor: BRAND_BLUE_LIGHT }}
+              style={{ borderColor: secondary }}
             >
               <span className="font-bold text-slate-800">Total</span>
-              <span className="font-bold text-lg" style={{ color: BRAND_BLUE }}>
+              <span className="font-bold text-lg" style={{ color: primary }}>
                 {formatNaira(totalNum)}
               </span>
             </div>
@@ -233,13 +245,30 @@ export function InvoicePrintLayout({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-medium mt-1 block break-all hover:underline"
-                style={{ color: BRAND_BLUE_LIGHT }}
+                style={{ color: secondary }}
               >
                 {paymentLink}
               </a>
             </div>
           </div>
         )}
+
+        {/* Authorized signature */}
+        <div className="mt-8 pt-6 border-t border-slate-200">
+          <div>
+            {sellerSignatureData ? (
+              <img
+                src={sellerSignatureData}
+                alt="Authorized signature"
+                className="h-14 w-auto max-w-[220px] object-contain object-left mb-1"
+              />
+            ) : (
+              <div className="h-12 border-b border-slate-300 mb-1" style={{ maxWidth: "220px" }} aria-hidden />
+            )}
+            <p className="text-xs text-slate-500 uppercase tracking-wide">Authorized signature</p>
+            <p className="text-xs text-slate-400 mt-1">{business.businessName}</p>
+          </div>
+        </div>
 
         <p className="mt-8 text-xs text-slate-400 text-center">
           Powered by InvoiceFlow · Nigeria

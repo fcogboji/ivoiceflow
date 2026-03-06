@@ -28,12 +28,14 @@ export async function POST(req: Request) {
     note,
     dueDate,
     applyVat,
+    sellerSignatureData,
   } = body as {
     customerId: string;
     items: { productName: string; quantity: number; price: number }[];
     note?: string;
     dueDate?: string;
     applyVat?: boolean;
+    sellerSignatureData?: string | null;
   };
 
   if (!customerId || !items?.length) {
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
       paymentReference,
       note: note?.trim() || undefined,
       dueDate: dueDate ? new Date(dueDate) : undefined,
+      sellerSignatureData: sellerSignatureData && typeof sellerSignatureData === "string" ? sellerSignatureData : undefined,
       items: {
         create: items.map((i) => ({
           productName: i.productName || "Item",

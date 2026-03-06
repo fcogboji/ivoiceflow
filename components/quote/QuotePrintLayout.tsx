@@ -3,7 +3,7 @@
 import { InvoicePrintLayout } from "@/components/invoice/InvoicePrintLayout";
 
 type Item = { productName: string; quantity: number; price: number | bigint };
-type Business = { businessName: string; logoUrl?: string | null; phone?: string | null; email?: string | null };
+type Business = { businessName: string; logoUrl?: string | null; brandColor?: string | null; phone?: string | null; email?: string | null };
 type Customer = { name: string; phone?: string | null; email?: string | null };
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
   total: number | bigint;
   note?: string | null;
   status?: string;
+  sellerSignatureData?: string | null;
 };
 
 export function QuotePrintLayout(props: Props) {
@@ -34,6 +35,7 @@ export function QuotePrintLayout(props: Props) {
       total={props.total}
       note={props.note}
       status={props.status}
+      sellerSignatureData={props.sellerSignatureData}
     />
   );
 }

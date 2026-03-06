@@ -17,6 +17,7 @@ export async function PATCH(req: Request) {
     businessName,
     phone,
     logoUrl,
+    brandColor,
     cacNumber,
     tinNumber,
     paymentProvider,
@@ -29,6 +30,7 @@ export async function PATCH(req: Request) {
     businessName?: string;
     phone?: string;
     logoUrl?: string;
+    brandColor?: string | null;
     cacNumber?: string;
     tinNumber?: string;
     paymentProvider?: string;
@@ -49,6 +51,12 @@ export async function PATCH(req: Request) {
           ? { logoUrl: null }
           : typeof logoUrl === "string"
             ? { logoUrl: logoUrl.trim() || null }
+            : {})),
+      ...(brandColor !== undefined &&
+        (brandColor === null || brandColor === ""
+          ? { brandColor: null }
+          : typeof brandColor === "string" && /^#[0-9A-Fa-f]{6}$/.test(brandColor.trim())
+            ? { brandColor: brandColor.trim() }
             : {})),
       ...(typeof cacNumber === "string" && { cacNumber: cacNumber.trim() || null }),
       ...(typeof tinNumber === "string" && { tinNumber: tinNumber.trim() || null }),

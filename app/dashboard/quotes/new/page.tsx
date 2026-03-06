@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react";
 import { formatNaira, parseNairaToKobo } from "@/lib/utils";
+import { SignaturePad } from "@/components/signature/SignaturePad";
 
 type Customer = { id: string; name: string };
 
@@ -16,6 +17,8 @@ export default function NewQuotePage() {
     { productName: "", quantity: 1, price: 0 },
   ]);
   const [note, setNote] = useState("");
+  const [sellerSignatureData, setSellerSignatureData] = useState<string | null>(null);
+  const [showSignaturePad, setShowSignaturePad] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -79,6 +82,7 @@ export default function NewQuotePage() {
             price: i.price,
           })),
           note: note.trim() || undefined,
+          sellerSignatureData: sellerSignatureData || undefined,
         }),
       });
       if (!res.ok) {
@@ -189,6 +193,35 @@ export default function NewQuotePage() {
             <span>Total</span>
             <span>{formatNaira(total)}</span>
           </div>
+        </div>
+
+        <div className="border-t border-slate-200 pt-6">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Authorized signature (optional)</label>
+          {showSignaturePad ? (
+            <SignaturePad
+              onSave={(dataUrl) => {
+                setSellerSignatureData(dataUrl);
+                setShowSignaturePad(false);
+              }}
+            />
+          ) : (
+            <div className="space-y-2">
+              {sellerSignatureData && (
+                <img
+                  src={sellerSignatureData}
+                  alt="Your signature"
+                  className="h-14 w-auto max-w-[220px] border border-slate-200 rounded bg-white object-contain object-left"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => setShowSignaturePad(true)}
+                className="text-sm text-emerald-600 font-medium hover:underline"
+              >
+                {sellerSignatureData ? "Change signature" : "Add signature"}
+              </button>
+            </div>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

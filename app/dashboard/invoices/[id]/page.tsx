@@ -56,6 +56,7 @@ export default async function InvoiceDetailPage({
           business={{
             businessName: user.businessName,
             logoUrl: user.logoUrl,
+            brandColor: user.brandColor,
             phone: user.phone,
             email: user.email,
           }}
@@ -75,6 +76,7 @@ export default async function InvoiceDetailPage({
           paymentLink={invoice.status === "pending" ? payLink : undefined}
           note={invoice.note}
           status={invoice.status}
+          sellerSignatureData={invoice.sellerSignatureData}
         />
       </div>
 

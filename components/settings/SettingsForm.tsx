@@ -56,6 +56,7 @@ type User = {
   businessName: string;
   phone: string | null;
   logoUrl: string | null;
+  brandColor: string | null;
   cacNumber: string | null;
   tinNumber: string | null;
   paymentProvider: string;
@@ -71,6 +72,7 @@ export function SettingsForm({ user }: { user: User }) {
   const [logoUrl, setLogoUrl] = useState<string | null>(user.logoUrl);
   const [logoUploading, setLogoUploading] = useState(false);
   const [businessName, setBusinessName] = useState(user.businessName);
+  const [brandColor, setBrandColor] = useState(user.brandColor ?? "");
   const [phone, setPhone] = useState(user.phone ?? "");
   const [cacNumber, setCacNumber] = useState(user.cacNumber ?? "");
   const [tinNumber, setTinNumber] = useState(user.tinNumber ?? "");
@@ -138,6 +140,7 @@ export function SettingsForm({ user }: { user: User }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           businessName: businessName.trim(),
+          brandColor: brandColor.trim() && /^#[0-9A-Fa-f]{6}$/.test(brandColor.trim()) ? brandColor.trim() : null,
           phone: phone.trim() || undefined,
           cacNumber: cacNumber.trim() || undefined,
           tinNumber: tinNumber.trim() || undefined,
@@ -212,6 +215,29 @@ export function SettingsForm({ user }: { user: User }) {
           onChange={(e) => setBusinessName(e.target.value)}
           className="w-full rounded-xl border border-slate-300 px-4 py-3 min-h-[48px] focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Brand color</label>
+        <p className="text-xs text-slate-600 mb-2">
+          Main color for invoices and quotes (header, company name, table headings, total). Use your logo or website color.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="color"
+            value={/^#[0-9A-Fa-f]{6}$/.test(brandColor.trim()) ? brandColor.trim() : "#1e3a5f"}
+            onChange={(e) => setBrandColor(e.target.value)}
+            className="h-10 w-14 rounded-lg border border-slate-300 cursor-pointer bg-white p-0.5"
+            title="Pick color"
+          />
+          <input
+            type="text"
+            value={brandColor}
+            onChange={(e) => setBrandColor(e.target.value)}
+            placeholder="#2563EB"
+            className="w-28 rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+        <p className="mt-1 text-xs text-slate-500">Hex code, e.g. #2563EB (blue), #22C55E (green), #FF4D4F (red).</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-2">WhatsApp / Phone</label>

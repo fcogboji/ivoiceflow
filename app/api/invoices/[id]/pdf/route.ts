@@ -3,8 +3,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatNaira } from "@/lib/utils";
 
-const BRAND_BLUE = "#1e3a5f";
-const BRAND_BLUE_LIGHT = "#3b82b6";
+const DEFAULT_BRAND = "#1e3a5f";
+const DEFAULT_BRAND_LIGHT = "#3b82b6";
+function brandColors(brandColor: string | null | undefined) {
+  const valid = brandColor && /^#[0-9A-Fa-f]{6}$/.test(brandColor);
+  return { primary: valid ? brandColor! : DEFAULT_BRAND, secondary: valid ? brandColor! : DEFAULT_BRAND_LIGHT };
+}
 
 export async function GET(
   _req: Request,
@@ -28,6 +32,7 @@ export async function GET(
     ? `Due ${invoice.dueDate.toLocaleDateString("en-NG")}`
     : "Due Upon Receipt";
   const invNumber = invoice.paymentReference ?? invoice.id.slice(-6).toUpperCase();
+  const { primary, secondary } = brandColors(user.brandColor);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -36,22 +41,22 @@ export async function GET(
   <title>Invoice ${escapeHtml(invNumber)}</title>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px 32px; color: #1e293b; }
-    .top-bar { height: 8px; background: linear-gradient(90deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 50%, ${BRAND_BLUE} 100%); margin: -24px -32px 24px -32px; }
+    .top-bar { height: 8px; background: linear-gradient(90deg, ${primary} 0%, ${secondary} 50%, ${primary} 100%); margin: -24px -32px 24px -32px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
     .header-logo { height: 72px; width: auto; max-width: 200px; object-fit: contain; margin-bottom: 8px; }
-    .business-name { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; color: ${BRAND_BLUE}; }
+    .business-name { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; color: ${primary}; }
     .divider { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .divider-line { height: 1px; width: 100px; background: ${BRAND_BLUE_LIGHT}; }
+    .divider-line { height: 1px; width: 100px; background: ${secondary}; }
     .title-right { text-align: right; }
-    .invoice-title { font-size: 1.75rem; font-weight: 700; text-transform: uppercase; color: ${BRAND_BLUE}; }
-    .invoice-num { font-size: 0.875rem; color: ${BRAND_BLUE_LIGHT}; margin-top: 4px; }
+    .invoice-title { font-size: 1.75rem; font-weight: 700; text-transform: uppercase; color: ${primary}; }
+    .invoice-num { font-size: 0.875rem; color: ${secondary}; margin-top: 4px; }
     .meta { font-size: 0.875rem; color: #475569; margin-top: 4px; }
     .bill-section { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
     .bill-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px; }
     .bill-name { font-weight: 600; color: #1e293b; }
     .bill-detail { font-size: 0.875rem; color: #475569; margin-top: 2px; }
     table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-    thead tr { background: ${BRAND_BLUE}; color: white; }
+    thead tr { background: ${primary}; color: white; }
     th { padding: 12px 16px; font-size: 0.8125rem; font-weight: 600; text-align: left; }
     th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
     th:nth-child(5) { text-align: right; }
@@ -65,13 +70,18 @@ export async function GET(
     .summary-row { display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 8px; }
     .summary-row .label { color: #64748b; }
     .summary-row .val { font-weight: 600; }
-    .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 12px; border-top: 2px solid ${BRAND_BLUE_LIGHT}; font-weight: 700; font-size: 1.125rem; }
-    .summary-total .val { color: ${BRAND_BLUE}; }
+    .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 12px; border-top: 2px solid ${secondary}; font-weight: 700; font-size: 1.125rem; }
+    .summary-total .val { color: ${primary}; }
     .note { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.875rem; color: #64748b; white-space: pre-wrap; }
     .payment { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0; display: flex; gap: 24px; align-items: flex-start; }
     .payment qr { display: block; width: 140px; height: 140px; border: 1px solid #e2e8f0; border-radius: 4px; }
     .payment-text { font-size: 0.875rem; color: #475569; }
-    .payment-link { font-size: 0.875rem; font-weight: 500; color: ${BRAND_BLUE_LIGHT}; margin-top: 4px; word-break: break-all; }
+    .payment-link { font-size: 0.875rem; font-weight: 500; color: ${secondary}; margin-top: 4px; word-break: break-all; }
+    .signature-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
+    .signature-line { height: 48px; border-bottom: 1px solid #cbd5e1; margin-bottom: 4px; max-width: 220px; }
+    .signature-img { height: 56px; width: auto; max-width: 220px; object-fit: contain; margin-bottom: 4px; display: block; }
+    .signature-label { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .signature-name { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
     .footer { margin-top: 32px; font-size: 0.75rem; color: #94a3b8; text-align: center; }
     .status { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
     .status.paid { background: #d1fae5; color: #065f46; }
@@ -87,7 +97,7 @@ export async function GET(
       <h1 class="business-name">${escapeHtml(user.businessName)}</h1>
       <div class="divider">
         <span class="divider-line"></span>
-        <span style="color:${BRAND_BLUE_LIGHT}">●</span>
+        <span style="color:${secondary}">●</span>
         <span class="divider-line"></span>
       </div>
     </div>
@@ -136,6 +146,13 @@ export async function GET(
     </div>
   </div>
   ` : ""}
+  <div class="signature-section">
+    <div>
+      ${invoice.sellerSignatureData ? `<img src="${invoice.sellerSignatureData.replace(/"/g, "&quot;")}" alt="" class="signature-img" />` : "<div class=\"signature-line\"></div>"}
+      <p class="signature-label">Authorized signature</p>
+      <p class="signature-name">${escapeHtml(user.businessName)}</p>
+    </div>
+  </div>
   <p class="footer">Powered by InvoiceFlow · Nigeria</p>
 </body>
 </html>`;
